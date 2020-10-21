@@ -120,7 +120,7 @@ contract ERC777 is Context, IERC777, IERC20 {
     /**
      * @dev See {IERC777-totalSupply}.
      */
-    function totalSupply() public view override(IERC20, IERC777) returns (uint256) {
+    function totalSupply() virtual public view override(IERC20, IERC777) returns (uint256) {
         return _totalSupply;
     }
 

@@ -3,7 +3,6 @@ pragma solidity ^0.6.0;
 
 import "../modified/ERC777.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
@@ -15,19 +14,23 @@ contract ERTH is ERC777, Ownable {
 
     // currentDelta at the last time of using the contract
     mapping (address => uint256) private _accountDeltas;
+    mapping(address => uint256) private _lockedBalances;
+
 
     // the current inflation delta
     uint256 private _currentPercentChange;
+    uint256 internal _lockedSupply;
+
+
 
     constructor(address[] memory defaultOperators)
         public
-        ERC777("ERTH: CO2 PPM", "ERTH", defaultOperators)
+        ERC777("ERTH: Mauna Loa CO2 PPM (TEST NET ONLY)", "ERTH", defaultOperators)
     {
         _currentPercentChange = 10000000000000000;
-        //10000000000000000
-        //10700000000000000
+        _lockedSupply = 0;
         _accountDeltas[msg.sender] = _currentPercentChange;
-        _mint(msg.sender, 417160000000 * (10 ** uint256(decimals())), "", "");
+        _mint(msg.sender, 100000000000 * (10 ** uint256(decimals())), "", "");
     }
 
     ////////////////////////////////////////////////////////////
@@ -37,10 +40,28 @@ contract ERTH is ERC777, Ownable {
     function balanceOf(address tokenHolder) public view override(ERC777) returns (uint256) {
         uint256 accountPercentChange = _accountDeltas[tokenHolder];
         if (accountPercentChange == _currentPercentChange || accountPercentChange == 0) {
+            return _balances[tokenHolder].add(_lockedBalances[tokenHolder]);
+        }
+
+        return ((_balances[tokenHolder].mul(_currentPercentChange).div(accountPercentChange)).add(_lockedBalances[tokenHolder]));
+    }
+
+    function lockedBalanceOf(address tokenHolder) public view returns (uint256) {
+        return _lockedBalances[tokenHolder];
+    }
+
+    function unlockedBalanceOf(address tokenHolder) public view returns (uint256) {
+        uint256 accountPercentChange = _accountDeltas[tokenHolder];
+        if (accountPercentChange == _currentPercentChange || accountPercentChange == 0) {
             return _balances[tokenHolder];
         }
 
         return _balances[tokenHolder].mul(_currentPercentChange).div(accountPercentChange);
+    }
+
+
+    function totalSupply() public view override(ERC777) returns (uint256) {
+        return _totalSupply.add(_lockedSupply);
     }
 
     function _move(
@@ -83,12 +104,8 @@ contract ERTH is ERC777, Ownable {
         require(from != address(0), "ERC777: burn from the zero address");
 
         address operator = _msgSender();
-
         _beforeTokenTransfer(operator, from, address(0), amount);
-
         _callTokensToSend(operator, from, address(0), amount, data, operatorData);
-
-
         _updateBalance(from);
 
         // Update state variables
@@ -107,6 +124,22 @@ contract ERTH is ERC777, Ownable {
     function setCurrentTotalPercentChange(uint256 product) public onlyOwner returns (string memory) {
         _totalSupply = _totalSupply.mul(product).div(_currentPercentChange);
         _currentPercentChange = product;
+    }
+
+    function lock(uint256 amount) public {
+        _updateBalance(_msgSender());
+        _balances[_msgSender()] = _balances[_msgSender()].sub(amount, "ERTH: lock amount exceeds balance");
+        _lockedBalances[_msgSender()] = _lockedBalances[_msgSender()].add(amount);
+        _totalSupply = _totalSupply.sub(amount);
+        _lockedSupply = _lockedSupply.add(amount);
+    }
+
+    function unlock(uint256 amount) public {
+        _updateBalance(_msgSender());
+        _lockedBalances[_msgSender()] = _lockedBalances[_msgSender()].sub(amount, "ERTH: unlock amount exceeds balance");
+        _balances[_msgSender()] = _balances[_msgSender()].add(amount);
+        _totalSupply = _totalSupply.add(amount);
+        _lockedSupply = _lockedSupply.sub(amount);
     }
 
     function _updateBalance(address account) internal {

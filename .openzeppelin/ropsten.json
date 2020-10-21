@@ -4,14 +4,14 @@
   "proxies": {
     "ERTH/ERTH": [
       {
-        "address": "0xA5985AdB56b4CB131493e405dA8e6aA00474cA94",
+        "address": "0xbC548532b333138476761847EdCd84D14854885A",
         "kind": "NonProxy",
-        "bytecodeHash": "fcedda5b68a5d85a261f9c4f3ba2fd26845ad7939c1b0eff80d3d1947854846b"
+        "bytecodeHash": "6a604d98880705f14d4c1d522a12443e4cf1a64c5eb23335cfd658ed66fe4145"
       },
       {
-        "address": "0xa0A8650494A2ebfcdB2637D2a0308C284281105f",
+        "address": "0xe2e0a5C29d9AbBD171F436f8B3D5b85722cB24A8",
         "kind": "NonProxy",
-        "bytecodeHash": "0438acd647e8c90b71db6bb4651f17ad0bfb7906d30f857bb727ee6176ab022f"
+        "bytecodeHash": "5bf0a9b165f7e5c47cc22562b2e41b6e9fb04d2f8e859c642fd5231d18ed36e4"
       }
     ]
   },
