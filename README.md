@@ -1,0 +1,5 @@
+# 🌍 ERTH ERC777 (ALPHA)
+
+```diff
+- USE ON TEST NET ONLY
+```
